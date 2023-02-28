@@ -6,6 +6,8 @@ package com.signify.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.signify.bean.Student;
 import com.signify.dao.ProfessorDAOImplementation;
 import com.signify.dao.ProfessorDAOInterface;
@@ -17,6 +19,8 @@ import com.signify.exception.NotTeachingExcetion;
  * @author Naman
  *
  */
+
+@Service
 public class ProfessorService implements ProfessorInterface{
 
     ProfessorDAOInterface professor = new ProfessorDAOImplementation();

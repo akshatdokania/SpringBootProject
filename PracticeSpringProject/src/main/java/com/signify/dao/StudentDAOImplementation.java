@@ -1,6 +1,6 @@
 package com.signify.dao;
 
-import java.sql.Connection;  
+import java.sql.Connection; 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,17 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
-
-import com.signify.bean.Course;
-import com.signify.exception.AlreadyRegisteredException;
-import com.signify.exception.CourseFilledException;
-import com.signify.exception.CourseNotFoundException;
-import com.signify.exception.NoSemesterRegisteration;
-import com.signify.exception.SixRegisteredCoursesException;
 import com.signify.service.StudentInterface;
 import com.signify.utils.DBUtils;
-
-
+import com.signify.bean.*;
+import com.signify.exception.*;
 
 @Component
 public class StudentDAOImplementation implements StudentDAOInterface{
@@ -33,8 +26,9 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 	 {
 		   int studid = 0;   
 		   try{
-			   	
-			   	  String sql = "insert into user(name,password,roleid) values(?,?,?)";
+			   
+			      String sql = "insert into user(name,password,roleid) values(?,?,?)";
+			      System.out.println("Connecting to database...");			      
 			      stmt = conn.prepareStatement(sql);
 			      stmt.setString(1,name);
 			      stmt.setString(2,password);
@@ -96,17 +90,21 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 		      String qq = "select * from semesterregisteration where semester="+sem+" and studentid="+id;
 		      stmt = conn.prepareStatement(qq);
 		      ResultSet rr = stmt.executeQuery(qq);
-		      if(rr.next()) {
+		      
+		      while(rr.next()) {
+		    	  System.out.println("True");
 		    	  return true;
 		      }
 		 }
 		 catch(SQLException se){
 		      se.printStackTrace();
 		   }
+		   System.out.println("False");
 		   return false;
 	 }
-	 public void semDAORegister(int studid,int sem,String doj,int cid[])
+	 public String semDAORegister(int studid,int sem,String doj,int cid[])
 	 {
+		 String resp ="Registration unsucessful";
 			try{
 				   				  
 			      String q = "insert into semesterregisteration values(?,?,?)";			  
@@ -128,12 +126,16 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 				      String query1 = "update courses set studentcount = studentcount+1 where courseid="+cid[i];
 				      stmt = conn.prepareStatement(query1);
 				      stmt.executeUpdate(query1);
+				      resp="Semester registration successful";
+				      return resp;
+				      
 			      }    
 			      			      
 	     }
 		catch(SQLException se){
 		      se.printStackTrace();
 		   }
+			return resp;
 		}
 		 
 	 public List<Course> viewDAOCatalog()throws CourseNotFoundException
@@ -169,8 +171,9 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 		   }
 			return courses;
 		}
-	 public void addDAOCourse(int studid,int cid)throws CourseFilledException,SixRegisteredCoursesException,AlreadyRegisteredException,NoSemesterRegisteration
+	 public String addDAOCourse(int studid,int cid)throws CourseFilledException,SixRegisteredCoursesException,AlreadyRegisteredException,NoSemesterRegisteration
 	 {
+		 String resp="";
 			try{
 				   			      
 			      String qq = "select studentcount from courses where courseid="+cid;
@@ -182,7 +185,8 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 			    		  throw new CourseFilledException();
 			    	  }
 			    	  if(count>=10) {
-			    		  return;
+			    		  resp="Student count filled";
+			    		  return resp;
 			    	  }
 			      }
 			      
@@ -196,13 +200,15 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 			    		  throw new SixRegisteredCoursesException();
 			    	  }
 			    	  if(size>=6) {
-			    		  return;
+			    		  resp = "Course Count filled";
+			    		  return resp;
 			    	  }
 			    	  if(res.getInt("coursecode")==cid) {
 			    		  throw new AlreadyRegisteredException(cid);
 			    	  }
 			    	  if(res.getInt("coursecode")==cid) {
-			    		  return;
+			    		  resp = "Already registered";
+			    		  return resp;
 			    	  }
 			      }
 			   
@@ -223,14 +229,21 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 				      String query1 = "update courses set studentcount = studentcount+1 where courseid="+cid;
 				      stmt = conn.prepareStatement(query1);
 				      stmt.executeUpdate(query1);
+				      resp="Course successfully added";
+				      return resp;
 			      }
 			      else {
-			    	  throw new NoSemesterRegisteration();
+			    	  resp="FIRSTLY YOU NEED TO DO SEMESTER REGISTERATION!!!";
+			    	  return resp;
+			    	  //throw new NoSemesterRegisteration();
+			    	  
 			      }
 	     }
 		catch(SQLException se){
 		      se.printStackTrace();
 		}
+		//System.out.println("no resp"+resp);
+		return resp;
 	 }
 	 public List<Course> myDAOCatalog(int studid)throws CourseNotFoundException
 	 {
@@ -271,8 +284,9 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 		   }
 		   return courses; 
 	 }
-	 public void dropDAOCourse(int studid,int cid)
+	 public String dropDAOCourse(int studid,int cid)
 	 {
+		   String resp ="Course does not exist";
 			try{
 				   
 			   
@@ -284,11 +298,13 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 			      String query = "update courses set studentcount = studentcount-1 where courseid="+cid;
 			      stmt = conn.prepareStatement(query);
 			      stmt.executeUpdate(query);
+			      resp = "Course successfully removed";
 			      
 	     }
 		catch(SQLException se){
 		      se.printStackTrace();
 		   }
+			return resp;
 	 }
 	 public boolean isDAOPaid(int studid, int semester) {
 			try{
@@ -354,7 +370,8 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 		   }
 		   return courses;
 		}
-	 public void payDAOFee(int studid, int sem, int mode, int amt) {
+	 public String payDAOFee(int studid, int sem, int mode, int amt) {
+		 String resp="";
 			try{
 				   
 			      
@@ -371,9 +388,11 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 			      stmt.setString(3, modePay);
 			      stmt.setInt(4, amt);
 			      stmt.executeUpdate();
+			      resp="Successfully paid";
 			      String sql2 = "SELECT courseCode,studentid from registeredcourse where feepaid=1";
 			      stmt2 = conn.prepareStatement(sql2);
 			      ResultSet rs = stmt2.executeQuery(sql2);
+			      
 			      while(rs.next()) {
 			    	  flag = true;
 			    	  String sql3 = "INSERT INTO grade(studid,courseid) values(?,?)";
@@ -386,9 +405,11 @@ public class StudentDAOImplementation implements StudentDAOInterface{
 		catch(SQLException se){
 		      se.printStackTrace();
 		   }
+			return resp;
 		}
-public void payDAOFeeOnline(int studid,int sem,int pay_choice,int amt,String cardType,String bankName,int cardNumber,String cardName,int cvv,String expiry)
+public String payDAOFeeOnline(int studid,int sem,int pay_choice,int amt,String cardType,String bankName,int cardNumber,String cardName,int cvv,String expiry)
 {
+	String resp="Failed";
 	try{
 		   
 	      
@@ -448,13 +469,15 @@ public void payDAOFeeOnline(int studid,int sem,int pay_choice,int amt,String car
 	    	  stmt2.setString(6,expiry);
 	    	  stmt2.setInt(7,payid);
 	    	  stmt2.executeUpdate();
+	    	  resp="Successfully paid";
 	      }
+	      
 	
 	      
 	}
   catch(SQLException se){
      se.printStackTrace();
    }
+	return resp;
   }
 }
-

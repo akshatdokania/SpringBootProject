@@ -60,7 +60,7 @@ public class AdminRestController {
 			method = RequestMethod.POST,
 			value = "/addAdmin")
 	@ResponseBody
-	public ResponseEntity addAdmin(@RequestBody Map<String,String> param) {
+	public ResponseEntity<String> addAdmin(@RequestBody Map<String,String> param) {
 		String name = param.get("name");
 		String pass = param.get("pass");
 		int id = admin.addAdmin(name, pass);

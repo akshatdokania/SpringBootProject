@@ -12,25 +12,25 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.signify.exception.*;
 import com.signify.bean.Course;
 import com.signify.bean.Student;
 import com.signify.bean.User;
 import com.signify.dao.StudentDAOImplementation;
 import com.signify.dao.StudentDAOInterface;
-import com.signify.exception.AlreadyRegisteredException;
-import com.signify.exception.CourseFilledException;
-import com.signify.exception.CourseNotFoundException;
-import com.signify.exception.NoSemesterRegisteration;
-import com.signify.exception.SixRegisteredCoursesException;
 
 /**
  * @author Naman
  *
  */
+@Service
 public class StudentService implements StudentInterface {
-
-	StudentDAOInterface studentDao = new StudentDAOImplementation();
-	public int registerForStudent(String name,String password,String branch,int batch)
+    @Autowired
+	StudentDAOInterface studentDao;
+    public int registerForStudent(String name,String password,String branch,int batch)
 	{
 		return studentDao.registerDAOStudent(name,password,branch, batch);
 	}
@@ -46,9 +46,9 @@ public class StudentService implements StudentInterface {
 	{
 		return studentDao.isSemDAORegister(sem,id);
 	}
-	public void semReg(int studid,int sem,String doj,int cid[])
+	public String semReg(int studid,int sem,String doj,int cid[])
 	{
-		studentDao.semDAORegister(studid,sem,doj,cid);
+		return studentDao.semDAORegister(studid,sem,doj,cid);
 	}
 	public List<Course> viewCatalog()
 	{
@@ -63,11 +63,14 @@ public class StudentService implements StudentInterface {
 		}
 		return courses;
 	}
-	public void addCourse(int studid,int cid)
+	public String addCourse(int studid,int cid)
 	{
+		String resp="";
 		try
 		{
-			studentDao.addDAOCourse(studid,cid);
+			resp = studentDao.addDAOCourse(studid,cid);
+			//System.out.println("resp from add course"+resp);
+			return resp;
 		}
 		catch(CourseFilledException ce)
 		{
@@ -85,10 +88,16 @@ public class StudentService implements StudentInterface {
 		{
 			
 		}
+		finally {
+			System.out.println("resp"+resp);
+			return resp;
+		}
+		//return resp;
+		
 	}
-	public void dropCourse(int studid,int cid)
+	public String dropCourse(int studid,int cid)
 	{
-		studentDao.dropDAOCourse(studid,cid);
+		return studentDao.dropDAOCourse(studid,cid);
 	}
 	public List<Course> myCatalog(int studid)
 	{
@@ -121,12 +130,12 @@ public class StudentService implements StudentInterface {
 		return courses;
 	}
 	
-	public void payFeeOnline(int ID,int semm,int pay_choice,int amount,String cardType,String bankName,int cardNumber,String cardName,int cvv,String expiry) {
-		studentDao.payDAOFeeOnline(ID,semm,pay_choice,amount,cardType,bankName,cardNumber,cardName,cvv,expiry);
+	public String payFeeOnline(int ID,int semm,int pay_choice,int amount,String cardType,String bankName,int cardNumber,String cardName,int cvv,String expiry) {
+		return studentDao.payDAOFeeOnline(ID,semm,pay_choice,amount,cardType,bankName,cardNumber,cardName,cvv,expiry);
 		
 	}
-	public void payFee(int id,int sem,int pay,int amount)
+	public String payFee(int id,int sem,int pay,int amount)
 	{
-		studentDao.payDAOFee(id, sem, pay, amount);
+		return studentDao.payDAOFee(id, sem, pay, amount);
 	}
 }
